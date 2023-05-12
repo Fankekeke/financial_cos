@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.mrbird.febs.cos.dao.InsuranceInfoMapper">
+
+    <!-- 分页获取投保信息 -->
+    <select id="insuranceInfoByPage" resultType="java.util.LinkedHashMap">
+        SELECT
+        ii.id,
+        ii.code,
+        ii.name,
+        ii.type,
+        ii.policyholder,
+        ii.price,
+        ii.content,
+        ii.create_date AS createDate,
+        ii.insurance_period AS insurancePeriod,
+        tu.USERNAME AS username
+        FROM
+        insurance_info ii
+        LEFT JOIN t_user tu ON ( tu.USER_ID = ii.policyholder )
+        WHERE
+        1 = 1
+        <if test="insuranceInfo.name != null and insuranceInfo.name != ''">
+            AND ii.name LIKE CONCAT('%',#{insuranceInfo.name},'%')
+        </if>
+        <if test="insuranceInfo.type != null">
+            AND ii.type = #{insuranceInfo.type}
+        </if>
+        <if test="insuranceInfo.code != null and insuranceInfo.code != ''">
+            AND ii.code LIKE CONCAT('%',#{insuranceInfo.code},'%')
+        </if>
+    </select>
+</mapper>

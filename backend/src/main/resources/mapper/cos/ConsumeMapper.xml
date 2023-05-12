@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.mrbird.febs.cos.dao.ConsumeMapper">
+
+    <sql id="baseResult">
+        c.ID AS id,
+        c.REASON AS reason,
+        c.AMOUNT AS amount,
+        c.CONSUME_DATE AS consumeDate,
+        c.CONSUME_TYPE AS consumeType,
+        c.CONSUME_FLAG AS consumeFlag,
+        c.BELONGING AS belonging,
+    </sql>
+
+    <sql id="baseParam">
+        <if test="consume.username != null and consume.username != ''">
+            AND tu.USERNAME LIKE CONCAT('%',#{consume.username},'%')
+        </if>
+        <if test="consume.reason != null and consume.reason != ''">
+            AND c.REASON LIKE CONCAT('%',#{consume.reason},'%')
+        </if>
+        <if test="consume.consumeDateStr != null and consume.consumeDateStr != ''">
+            AND DATE_FORMAT(c.CONSUME_DATE, '%Y-%m-%d') = DATE_FORMAT(#{consume.consumeDateStr}, '%Y-%m-%d')
+        </if>
+        <if test="consume.consumeType != null">
+            AND c.CONSUME_TYPE = #{consume.consumeType}
+        </if>
+        <if test="consume.consumeFlag != null">
+            AND c.CONSUME_FLAG = #{consume.consumeFlag}
+        </if>
+    </sql>
+
+    <select id="getConsumePage" resultType="java.util.LinkedHashMap">
+        SELECT
+        <include refid="baseResult"/>
+        td.VALUEE AS consumeTypeLabel,
+        tu.USERNAME AS username
+        FROM
+        consume AS c
+        LEFT JOIN t_dict td ON ( c.CONSUME_TYPE = td.KEYY )
+        AND td.FIELD_NAME = 'CONSUME_TYPE'
+        LEFT JOIN t_user tu ON ( c.BELONGING = tu.USER_ID )
+        WHERE
+        c.DELETE_FLAG = 0
+        <include refid="baseParam"/>
+    </select>
+
+    <select id="statistSum" resultType="java.util.LinkedHashMap">
+        SELECT
+	    a.money AS income,
+	    b.money AS expenses
+        FROM
+	    (
+	    SELECT
+		SUM( c.AMOUNT ) AS money
+	    FROM
+		consume AS c
+	    WHERE
+		c.CONSUME_FLAG = 0
+		AND c.DELETE_FLAG = 0
+	    AND DATE_FORMAT( c.CONSUME_DATE, '%Y-%m-%d' ) = DATE_FORMAT( #{date}, '%Y-%m-%d' )) AS a,
+	    (
+	    SELECT
+		SUM( c.AMOUNT ) AS money
+	    FROM
+		consume AS c
+	    WHERE
+		c.CONSUME_FLAG = 1
+		AND c.DELETE_FLAG = 0
+	    AND DATE_FORMAT( c.CONSUME_DATE, '%Y-%m-%d' ) = DATE_FORMAT( #{date}, '%Y-%m-%d' )) AS b
+    </select>
+
+    <select id="statistionType" resultType="java.util.LinkedHashMap">
+        SELECT
+        SUM( c.AMOUNT ) AS money,
+        any_value(dict.VALUEE) AS type
+        FROM
+        consume AS c
+        LEFT JOIN t_dict AS dict ON ( dict.KEYY = c.CONSUME_TYPE )
+        AND dict.FIELD_NAME = 'CONSUME_TYPE'
+        WHERE
+        c.CONSUME_FLAG = 1
+        AND c.DELETE_FLAG = 0
+        AND DATE_FORMAT( c.CONSUME_DATE, '%Y-%m' ) = DATE_FORMAT( #{date}, '%Y-%m' )
+        GROUP BY
+        c.CONSUME_TYPE
+    </select>
+
+    <select id="statistionMonth" resultType="java.util.LinkedHashMap">
+        SELECT
+	    b.money AS expenses,
+	    a.money AS income
+        FROM
+	    (
+	    SELECT
+		SUM( c.AMOUNT ) AS money
+	    FROM
+		consume AS c
+	    WHERE
+		c.CONSUME_FLAG = 0
+		AND c.DELETE_FLAG = 0
+	    AND DATE_FORMAT( c.CONSUME_DATE, '%Y-%m' ) = DATE_FORMAT( #{date}, '%Y-%m' )) AS a,
+	    (
+	    SELECT
+		SUM( c.AMOUNT ) AS money
+	    FROM
+		consume AS c
+	    WHERE
+		c.CONSUME_FLAG = 1
+	    AND c.DELETE_FLAG = 0
+	    AND DATE_FORMAT( c.CONSUME_DATE, '%Y-%m' ) = DATE_FORMAT( #{date}, '%Y-%m' )) AS b
+    </select>
+
+    <select id="export" resultType="java.util.LinkedHashMap">
+        SELECT
+        ( @i := @i + 1 ) AS RowNum,
+        tu.USERNAME AS username,
+        c.REASON AS reason,
+        c.AMOUNT AS amount,
+        dict.VALUEE AS type,
+        c.CONSUME_DATE AS consumeDate
+        FROM
+        consume AS c
+        LEFT JOIN t_user AS tu ON tu.USER_ID = c.BELONGING
+        LEFT JOIN t_dict AS dict ON ( dict.KEYY = c.CONSUME_TYPE )
+        AND dict.FIELD_NAME = 'CONSUME_TYPE'
+        LEFT JOIN ( SELECT @i := 0 ) AS i ON 1 = 1
+        WHERE
+        c.CONSUME_FLAG = #{flag}
+        AND c.DELETE_FLAG = 0
+        AND DATE_FORMAT( c.CONSUME_DATE, '%Y-%m' ) = DATE_FORMAT( CURDATE(), '%Y-%m' )
+    </select>
+
+    <select id="export1" resultType="java.util.LinkedHashMap">
+        SELECT
+        ( @i := @i + 1 ) AS RowNum,
+        tu.USERNAME AS username,
+        c.REASON AS reason,
+        c.AMOUNT AS amount,
+        dict.VALUEE AS type,
+        c.CONSUME_DATE AS consumeDate
+        FROM
+        consume AS c
+        LEFT JOIN t_user AS tu ON tu.USER_ID = c.BELONGING
+        LEFT JOIN t_dict AS dict ON ( dict.KEYY = c.CONSUME_TYPE )
+        AND dict.FIELD_NAME = 'CONSUME_TYPE'
+        LEFT JOIN ( SELECT @i := 0 ) AS i ON 1 = 1
+        WHERE
+        c.CONSUME_FLAG = #{flag}
+        AND c.DELETE_FLAG = 0
+        AND DATE_FORMAT( c.CONSUME_DATE, '%Y-%m' ) = DATE_FORMAT( #{ month }, '%Y-%m' )
+    </select>
+
+    <select id="monthPriceByUser" resultType="java.util.LinkedHashMap">
+        SELECT
+        IFNULL(b.money,0) AS expenses,
+        IFNULL(a.money,0) AS income
+        FROM
+        (
+        SELECT
+            SUM( c.AMOUNT ) AS money
+        FROM
+            consume AS c
+        WHERE
+            c.CONSUME_FLAG = 0
+            AND c.BELONGING = #{ userId }
+            AND c.DELETE_FLAG = 0
+        AND DATE_FORMAT( c.CONSUME_DATE, '%Y-%m' ) = DATE_FORMAT( CURDATE(), '%Y-%m' )) AS a,
+        (
+        SELECT
+            SUM( c.AMOUNT ) AS money
+        FROM
+            consume AS c
+        WHERE
+            c.CONSUME_FLAG = 1
+        AND c.DELETE_FLAG = 0
+        AND c.BELONGING = #{ userId }
+        AND DATE_FORMAT( c.CONSUME_DATE, '%Y-%m' ) = DATE_FORMAT( CURDATE(), '%Y-%m' )) AS b
+    </select>
+</mapper>
