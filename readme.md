@@ -1,4 +1,4 @@
-### 基于SpringBoot的家庭理财系统
+### 基于SpringBoot + Vue的家庭理财系统
 
 #### 安装环境
 
