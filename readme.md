@@ -58,7 +58,7 @@ saber
 |![p9ckcLt.png](https://s1.ax1x.com/2023/05/13/p9ckcLt.png) | ![p9ck6sI.png](https://s1.ax1x.com/2023/05/13/p9ck6sI.png) |
 |![p9ckyQA.png](https://s1.ax1x.com/2023/05/13/p9ckyQA.png) | ![p9ckrzd.png](https://s1.ax1x.com/2023/05/13/p9ckrzd.png) |
 |![p9ckDRH.png](https://s1.ax1x.com/2023/05/13/p9ckDRH.png) | ![p9ckRdf.png](https://s1.ax1x.com/2023/05/13/p9ckRdf.png) |
-|![p9ck2eP.png](https://s1.ax1x.com/2023/05/13/p9ck2eP.png) 
+|![p9ck2eP.png](https://s1.ax1x.com/2023/05/13/p9ck2eP.png) | ![](https://fank-bucket-oss.oss-cn-beijing.aliyuncs.com/work/936e9baf53eb9a217af4f89c616dc19.png) |
 
 
 #### 演示视频
